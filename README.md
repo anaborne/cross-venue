@@ -1,14 +1,14 @@
 # cross-venue: are Kalshi and Polymarket US game moneylines the same contract?
 
-This is the working repository for C5, one study in a series I run against US
+This is one study in a series I run against US
 prediction markets. The one before it is published at
-<https://github.com/anaborne/kalshi-temperature-calibration>. C5 asked whether a
+<https://github.com/anaborne/kalshi-temperature-calibration>. This specific study asked whether a
 game-moneyline contract on Kalshi and the same game on Polymarket US are the
 same contract (same settlement source, same settlement time, same edge-case
 rules), so that a position on both legs is actually hedged. Where the rules
 differ, the position is a bet on the difference.
 
-## Status: Gate A complete, C5 killed
+## Status: Gate A complete, study killed
 
 Gate A (venue independence, settlement identity, read path) ran 2026-08-27/28,
 read-only, $0, no orders, no snapshots, no gap computed. The write-up with
