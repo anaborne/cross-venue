@@ -1,0 +1,31 @@
+--- RECONCILIATION: pair construction ---
+Kalshi open game events         : 115
+  parsed into join keys         : 111
+  DROPPED, ticker unparsed      : 4  reason: doubleheader G1/G2 suffix -> ['KXMLBGAME-26AUG292205AZSFG2', 'KXMLBGAME-26AUG291915BOSNYYG2', 'KXMLBGAME-26AUG291605AZSFG1', 'KXMLBGAME-26AUG291305BOSNYYG1']
+PMUS moneyline/drawable markets : 2448 in 1462 game keys
+Pairs matched (league,date,teams): 74
+Pairs evaluated                 : 74   dropped in evaluation: 0
+
+--- WINDOW MISMATCH TABLE ---
+  epl  kalshi=   48h  pmus=  336h  pairs=  4  DIFFER
+  mlb  kalshi=   48h  pmus=  336h  pairs= 43  DIFFER
+  nfl  kalshi=   48h  pmus=  336h  pairs= 27  DIFFER
+
+--- SOURCE TABLE ---
+  epl  x  4
+        kalshi: ESPN <https://www.espn.com/>; Fox Sports <https://www.foxsports.com/>
+        pmus  : Premier League
+  mlb  x 43
+        kalshi: ESPN <https://www.espn.com>; Fox Sports <https://www.foxsports.com>; the Governing League <https://www.mlb.com/>
+        pmus  : MLB
+  nfl  x 27
+        kalshi: the Governing League <https://www.nfl.com/>
+        pmus  : NFL
+
+--- VERDICT ---
+  src_ok     true:  27 / 74
+  time_ok    true:   0 / 74
+  edge_ok    true:   0 / 74
+  identical  true:   0 / 74
+
+SETTLEMENT-IDENTICAL PAIRS: 0 of 74

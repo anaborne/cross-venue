@@ -1,0 +1,10 @@
+data/*
+!data/raw/
+data/raw/*
+!data/raw/gateA/
+data/raw/gateA/*
+!data/raw/gateA/pair_comparison.json
+.venv/
+__pycache__/
+*.pyc
+.DS_Store
