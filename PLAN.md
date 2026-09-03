@@ -244,9 +244,17 @@ misrepresenting residency, and no workaround is to be found.
 Recorded 2026-08-29, appended when the file was first committed to this
 repository.
 
-Everything above the "Provenance" heading was written on 2026-08-28, before Gate
-A ran and before any Gate A data existed. The version first committed here was
-reproduced byte-for-byte as authored, and nothing above had been edited,
+Everything above the "Provenance" heading was written on 2026-08-28. That date
+does not put it ahead of the whole Gate A run. Gate A ran across 2026-08-27/28:
+`notes/gateA.md` §0 dates its check that this file was absent from the repository
+to 2026-08-27, §1 dates the CFTC register check to the same day, and §2a runs the
+sample pull across both days. So the writing date sits inside the run window, and
+the sub-checks dated 2026-08-27, the §0 input check and the §1 register check,
+came first. Nothing committed here records a time of day for the writing or for
+any sub-check, so this repository cannot establish the order of the writing
+against the 2026-08-28 half of the run either, and the earlier claim that the
+text above predates the whole of Gate A was wrong. The version first committed
+here was reproduced byte-for-byte as authored, and nothing above had been edited,
 reordered or softened at that point. Two later passes changed the text of this
 file, and both are recorded below the Provenance section. No figure, threshold,
 gate definition, kill criterion or measured result was changed by either.
@@ -258,14 +266,18 @@ Gate A therefore ran against §6's kill threshold as I had written it down
 beforehand, and `notes/gateA.md` §0 records that the file itself was not
 available at the time.
 
-Two facts support the ordering.
+Two things bear on the ordering.
 
-1. The document carries a creation timestamp dated before the Gate A run, in the
-   notes it was authored in. Only I can check that one.
+1. The document carries a creation timestamp, in the notes it was authored in.
+   Only I can check that one, and it carries less than it looks: the writing date
+   recorded above already sits inside the run window, so a timestamp agreeing
+   with it does not put this file ahead of Gate A.
 2. §6's threshold ("PLAN.md section 6 kills C5 below 30") was written down and
    quoted before the pull, and `notes/gateA.md` records that the file itself was
    never available while the gate ran. A threshold fixed before the data existed
-   is what pre-registration turns on.
+   is what pre-registration turns on. The copy written down before the pull is
+   not §6 above, which carries the 2026-08-28 date along with the rest of the
+   file, and it is not committed anywhere here, so this rests on my word too.
 
 A plan committed after its own result should be read with suspicion. What
 supports it is the threshold having been written down first, and not this note's

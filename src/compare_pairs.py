@@ -27,14 +27,22 @@ for m in P:
     if mm: pg[(mm.group(2),mm.group(5),(mm.group(3)+mm.group(4)).upper())].append(m)
     else: p_unparsed.append(m.get('slug'))
 
+PATS=[(r'within (\w+|\d+) days?',24),(r'within (\w+|\d+) weeks?',168),(r'(\d+) hours',1)]
+
 def window_hours(txt):
     """Extract the postponement/reschedule window, in hours, from the sentence
-    of the rules text that states it. Sentences that do not mention a
-    postponement, reschedule, delay or suspension are not read, so a window
-    quoted elsewhere in the blob cannot be picked up in its place."""
-    sents=[x for x in txt.lower().split('.') if re.search(r'postpon|reschedul|delay|suspend',x)]
+    of the rules text that states it. Read a sentence if it mentions a
+    postponement, reschedule, delay or suspension, or if it names a time window
+    and follows a sentence that names one, which is the shape that carries the
+    operative figure in a clause split off from the one naming the keyword. A
+    window quoted anywhere else in the blob cannot be picked up in its place."""
+    raw=txt.lower().split('.')
+    named=[any(re.search(pat,x) for pat,_ in PATS) for x in raw]
+    sents=[x for i,x in enumerate(raw)
+           if re.search(r'postpon|reschedul|delay|suspend',x)
+           or (named[i] and i>0 and named[i-1])]
     for t in sents:
-        for pat,mult in [(r'within (\w+|\d+) days?',24),(r'within (\w+|\d+) weeks?',168),(r'(\d+) hours',1)]:
+        for pat,mult in PATS:
             m=re.search(pat,t)
             if m:
                 v=m.group(1)

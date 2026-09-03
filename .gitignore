@@ -4,6 +4,7 @@ data/raw/*
 !data/raw/gateA/
 data/raw/gateA/*
 !data/raw/gateA/pair_comparison.json
+!data/raw/gateA/README.md
 .venv/
 __pycache__/
 *.pyc

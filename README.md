@@ -55,11 +55,11 @@ thing about itself.
 |---|---|
 | `METHOD.md` | how I work here, and the Kalshi and Polymarket US API behaviour I checked, with the date on each item |
 | `notes/gateA.md` | the Gate A write-up |
-| `notes/compare_pairs.log` | stdout of the `src/compare_pairs.py` run that produced the 0/74, as that run printed it, before the two scorer corrections of 2026-09-03 |
+| `notes/compare_pairs.log` | stdout of the `src/compare_pairs.py` run that produced the 0/74, as that run printed it, under a dated header naming the two scorer corrections of 2026-09-03 that supersede two of its figures |
 | `src/pull_pmus.py` | raw-first paginated pull of `gateway.polymarket.us/v1/{resource}`; terminates only on an empty page |
 | `src/pull_tail.py` | resumes the same walk from a given offset |
 | `src/compare_pairs.py` | joins Kalshi open game events to Polymarket US moneyline markets on `(league, date, teams)` and scores source / time / edge-case identity |
-| `data/raw/gateA/pair_comparison.json` | the 74 scored pairs, written by `compare_pairs.py`; the one file under `data/` that is committed. Its `src_ok` and `edge_ok` columns are the pre-correction ones |
+| `data/raw/gateA/pair_comparison.json` | the 74 scored pairs, written by `compare_pairs.py`; the one file under `data/` that is committed. Its `src_ok` and `edge_ok` columns are the pre-correction ones, and `data/raw/gateA/README.md` beside it says so |
 
 `data/` is otherwise gitignored. The raw pull behind Gate A is ~570 MB on the
 working machine under `data/raw/gateA/`. It holds Kalshi `open_markets.json`,
@@ -82,12 +82,12 @@ command exits with FileNotFoundError. The committed evidence for the 74/0 is
 `data/raw/gateA/pair_comparison.json` and `notes/compare_pairs.log`, both
 outputs of the run described below.
 
-It prints the reconciliation (115 Kalshi events, 111 parsed, 4 dropped; 2,448
-Polymarket US moneyline/drawable markets with a parseable slug, in 1,462 game
-keys; 74 pairs), the window and source tables, and `SETTLEMENT-IDENTICAL PAIRS:
-0 of 74`, and rewrites `data/raw/gateA/pair_comparison.json`. Re-run 2026-08-29
-against the same raw data: the counts above, and a JSON byte-identical to the
-committed copy. Log at `notes/compare_pairs.log`. Both of those artifacts are
+The 2026-08-29 run printed the reconciliation (115 Kalshi events, 111 parsed, 4
+dropped; 2,448 Polymarket US moneyline/drawable markets with a parseable slug, in
+1,462 game keys; 74 pairs), the window and source tables, and
+`SETTLEMENT-IDENTICAL PAIRS: 0 of 74`, and rewrote
+`data/raw/gateA/pair_comparison.json`. Re-run 2026-08-29 against the same raw
+data: the counts above, and a JSON byte-identical to the committed copy. Log at `notes/compare_pairs.log`. Both of those artifacts are
 from that run and predate the 2026-09-03 scorer corrections, which change the
 `src_ok` and `edge_ok` columns and the reconciliation block. They cannot be
 regenerated here, because the inputs are not committed.

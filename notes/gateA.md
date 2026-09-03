@@ -117,7 +117,9 @@ Live-tier only, both venues, 2026-08-27/28.
   115 events.
 - Polymarket US: full offset walk of `GET gateway.polymarket.us/v1/markets?closed=false`,
   giving 30,720 markets, 63 pages, 0 duplicates, 0 null ids. 2,448 of them carry
-  `marketType ∈ {moneyline, drawable_outcome}` across 1,462 game keys.
+  `marketType ∈ {moneyline, drawable_outcome}` and a parseable slug, across 1,462
+  game keys. The count of markets of that type before the slug filter was not
+  recorded by the run and is not recoverable here.
 - Join key `(league, date, away+home)`, built from the Polymarket US slug and
   matched against the Kalshi event ticker.
 
@@ -132,6 +134,10 @@ Reconciliation, pair construction
 | Polymarket US game keys | 1,462 |
 | pairs matched | 74 |
 | pairs evaluated | 74 (0 dropped in evaluation) |
+
+The 111 join keys reach 74 pairs because 37 of them have no Polymarket US
+counterpart; the corrected script prints those 37, and `notes/compare_pairs.log`
+predates that printing.
 
 74 clears the 40-pair minimum I had set for myself. That minimum is not written
 into `PLAN.md` §6 and cannot be checked against the pre-registration file; it is
@@ -517,8 +523,9 @@ fixed in the committed script. The headline is unchanged: 0 of 74 pairs are
 settlement-identical, and every pair still fails on the postponement window.
 
 Settlement source, 27 / 74 to 0 / 74. The test was
-`psrc.lower() in ksrc[0].lower()`, and `ksrc[0]` is the Kalshi source name
-followed by its URL. On the 27 NFL pairs the Kalshi entry is
+`src_ok = bool(psrc) and len(ksrc)==1 and psrc.lower().replace('the ','') in ksrc[0].lower()`,
+and `ksrc[0]` is the Kalshi source name followed by its URL. On the 27 NFL pairs
+the Kalshi entry is
 `the Governing League <https://www.nfl.com/>` and the Polymarket US source is
 `NFL`. The token `nfl` appears in the URL and nowhere in the name, so all 27
 matches came from the hostname. The test now reads the name half only, and no
@@ -537,18 +544,30 @@ Four further changes to the same script do not move a published number. The
 Kalshi postponement window is now read from `rules_primary` and
 `rules_secondary` together, where it was read from `rules_secondary` alone while
 the cancellation test already read both. `window_hours` now reads only sentences
-that mention a postponement, reschedule, delay or suspension, where it used to
-return the first time phrase anywhere in the blob and ranked days ahead of hours
-regardless of position. A series outside the four-entry league map used to raise
-`KeyError`, and is now recorded as a drop. The reconciliation block now prints the
-Kalshi join keys with no Polymarket US counterpart (37 on this run, previously
+that mention a postponement, reschedule, delay or suspension, plus a sentence
+that names a time window and follows one that does, where it used to return the
+first time phrase anywhere in the blob and ranked days ahead of hours regardless
+of position. The unit patterns are still tried days, weeks, hours, so a
+postponement sentence naming both a day figure and an hour figure still returns
+the day figure regardless of order. Not observed on this sample, where every
+Kalshi text names one figure. A series outside the four-entry league map used to
+raise `KeyError`, and is now recorded as a drop. The reconciliation block now
+prints the Kalshi join keys with no Polymarket US counterpart (37 on this run, previously
 unreported), the count of Polymarket US markets of the right type against the
 count whose slug parsed, and any pair where a window could not be read.
 
-The two window changes were exercised against the rules text quoted verbatim in
-§2c, and reproduce the 48 / 336 split on all three leagues. They could not be
+The window changes were exercised against the rules text quoted verbatim in §2c,
+and reproduce the 48 / 336 split on all three leagues. The follow-on
+clause was added because a rules text of the shape "Settlement occurs within
+three days of the game. If the game is not started within 48 hours, the market
+resolves to a fair price." carries the operative figure in a sentence with none
+of the four keywords, and the keyword-only filter read nothing at all on it. A
+74-pair fixture rebuilt from the committed `pair_comparison.json` and that same
+quoted text scores 0 / 0 / 74 / 0 with the filter either way, so the clause moves
+no published number on what is committed here. The window changes could not be
 re-checked against the raw pull, which is not committed, so a window figure
-moving under the wider read is [U].
+moving, or becoming unreadable because the operative sentence carries no
+postponement keyword, is [U] on the raw pull.
 
 `notes/compare_pairs.log` and `data/raw/gateA/pair_comparison.json` are the
 outputs of the 2026-08-29 run and are left as they were printed. They carry the
@@ -557,3 +576,7 @@ files `compare_pairs.py` reads are not committed. The corrected figures above
 were derived from the committed `pair_comparison.json`, which records each pair's
 Kalshi source list and Polymarket US source string, and from the rules text
 quoted verbatim in §2c and §2f.
+
+Each of those two artifacts now carries a dated notice pointing here: a header
+block above the log's original 31 lines, and `data/raw/gateA/README.md` beside
+the JSON. Neither payload was touched.

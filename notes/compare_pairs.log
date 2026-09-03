@@ -1,3 +1,33 @@
+# CORRECTION NOTICE, added 2026-09-03. Two figures below are superseded:
+# "src_ok true: 27 / 74" and "edge_ok true: 0 / 74". The corrected figures are
+# src_ok 0 / 74 and edge_ok 74 / 74.
+#
+# Everything under this block is the stdout of the 2026-08-29 run of
+# src/compare_pairs.py, kept as that run printed it. An audit on 2026-09-03 found
+# two errors in the scoring code, both since fixed in the committed script:
+#
+#   src_ok  matched the Polymarket US source name against the whole Kalshi
+#           settlement_sources entry, URL included, so the 27 NFL hits came from
+#           the hostname in <https://www.nfl.com/>. The name half of that entry
+#           reads "the Governing League" and carries no such token. On the names
+#           alone, 0 of 74.
+#   edge_ok was ANDed with the time test, which is false on all 74, so the column
+#           repeated the time column and measured nothing of its own. On the
+#           edge-case term alone, 74 of 74.
+#
+# The reconciliation block below also predates the corrected printing, which
+# separates the count of Polymarket US markets of the right type from the count
+# whose slug parsed, lists the Kalshi join keys with no Polymarket US
+# counterpart, and reports any pair where a window could not be read.
+#
+# The headline, SETTLEMENT-IDENTICAL PAIRS: 0 of 74, is unchanged, and so is
+# time_ok 0 / 74. This log cannot be regenerated here, because the three files
+# compare_pairs.py reads are not committed. The correction dated 2026-09-03 at
+# the foot of notes/gateA.md states what changed and how the corrected figures
+# were derived.
+#
+# The original run output follows, unaltered.
+
 --- RECONCILIATION: pair construction ---
 Kalshi open game events         : 115
   parsed into join keys         : 111
