@@ -241,7 +241,7 @@ misrepresenting residency, and no workaround is to be found.
 
 # Provenance of this file
 
-Recorded 2026-08-28, appended when the file was first committed to this
+Recorded 2026-08-29, appended when the file was first committed to this
 repository.
 
 Everything above the "Provenance" heading was written on 2026-08-28, before Gate
@@ -354,14 +354,14 @@ which no second independent book was verified to exist.
 
 ---
 
-# Redaction note, 2026-08-28, at publication
+# Redaction note, 2026-08-29, at publication
 
 Six passages above this line were edited in place, as itemised below. No figure,
 threshold, criterion or measured result bearing on the study was changed. My
 convention forbids silent revision, and this note is what makes the redaction
 non-silent.
 
-This repository was made public on 2026-08-28. Those six passages carried my
+This repository was made public on 2026-08-29. Those six passages carried my
 personal financial position and working setup, and were replaced with statements
 of the same operational content:
 
@@ -385,9 +385,12 @@ Provenance section above no longer claims the file stands byte-for-byte as
 authored. Every figure, threshold, gate definition, kill criterion, correction
 and measured number is as authored.
 
-The git history was rewritten on 2026-08-28 to remove the pre-redaction text from
+The git history was rewritten on 2026-08-29 to remove the pre-redaction text from
 every commit, and the GitHub repository was deleted and recreated so that the
-superseded objects are not retrievable by SHA. Commit messages, authorship and
-author dates are preserved, so the ordering this file's Provenance section asks a
-reader to check is intact. The commit SHAs are not the ones a reader who cloned
-this repository before 2026-08-28 evening would have seen.
+superseded objects are not retrievable by SHA. The commit SHAs are not the ones
+a reader who cloned this repository before 2026-08-29 evening would have seen.
+
+The rewrite collapsed the repository into a single initial commit dated
+2026-08-29, so git history does NOT preserve the pre-gate/post-gate ordering.
+Nothing in this repository independently establishes that PLAN.md predates the
+Gate A run.

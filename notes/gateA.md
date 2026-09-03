@@ -1,10 +1,11 @@
 # Gate A: venue independence, settlement identity, read path
 
-Date: 2026-08-27/28. Author: Immanuel Anaborne. The criteria, the kill threshold,
-the sample minimum and the reconciliation check were set before the pull, and I
-re-derived every number below from the committed run log before publishing. All
-work read-only, $0, no orders, no snapshots recorded, no gap computed. Raw
-responses under `data/raw/gateA/`.
+Date: 2026-08-27/28. Author: Immanuel Anaborne. The criteria, the kill threshold
+and the reconciliation check were set before the pull, and I re-derived every
+number below from the committed run log before publishing. The sample minimum
+was set before the pull as well, in my own notes only, and §2a states what that
+does and does not establish. All work read-only, $0, no orders, no snapshots
+recorded, no gap computed. Raw responses under `data/raw/gateA/`.
 
 Every claim below is marked. [V] means I checked it against a primary source I
 name inline, [I] means I inferred it, [U] means I have not checked it. Nothing is
@@ -132,7 +133,9 @@ Reconciliation, pair construction
 | pairs matched | 74 |
 | pairs evaluated | 74 (0 dropped in evaluation) |
 
-74 clears the 40-pair minimum I set. The 4 doubleheaders are excluded from the
+74 clears the 40-pair minimum I had set for myself. That minimum is not written
+into `PLAN.md` §6 and cannot be checked against the pre-registration file; it is
+asserted here only. The 4 doubleheaders are excluded from the
 denominator and are an open item.
 
 ### 2b. Result
@@ -141,10 +144,15 @@ denominator and are an open item.
 
 | dimension | pairs identical |
 |---|---|
-| settlement SOURCE | 27 / 74 |
+| settlement SOURCE | 0 / 74 |
 | settlement TIME | 0 / 74 |
-| edge-case definitions | 0 / 74 |
+| edge-case definitions (cancellation fallback) | 74 / 74 |
 | all three | 0 / 74 |
+
+The source and edge-case rows are the corrected ones. The run log at
+`notes/compare_pairs.log` carries the figures the scorer printed on the day,
+27 / 74 and 0 / 74. The correction at the foot of this file states what was
+wrong with each.
 
 ### 2c. What drives it: the postponement window
 
@@ -173,7 +181,9 @@ here if one existed:
 | Kalshi | "rescheduled to over 48 hours away" | 4 |
 | Polymarket US | "within two weeks of the originally scheduled date" | 74 |
 
-48 hours against 336 hours, 74 of 74, no exceptions.
+48 hours against 336 hours, 74 of 74, no exceptions. The census was computed
+inline over the same rules text and the script for it is not committed, so it is
+not reproducible from this repository.
 
 The economic content: a game postponed and replayed 3 to 13 days later settles at
 last fair market price on Kalshi and on the actual game result on Polymarket US.
@@ -187,8 +197,9 @@ Corroborating the market text, the binding contract-terms PDFs
 
 ### 2d. Settlement time also differs, independently
 
-[V] `expiration_time == endDate`: 0 / 74.
-[V] `expected_expiration_time == endDate`: 0 / 74.
+[V] (computed inline, script not committed) `expiration_time == endDate`: 0 / 74.
+[V] (same) `expected_expiration_time == endDate`: 0 / 74. Neither is reproducible
+from this repository; `compare_pairs.py` does not compute them.
 
 Representative (MLB, `KXMLBGAME-26AUG272145AZSF` against
 `aec-mlb-az-sf-2026-08-27`): Kalshi `expiration_time` `2026-08-31T01:45:00Z`,
@@ -219,8 +230,10 @@ of the French Open Men's Singles Championship"), and contains zero occurrences o
 "hockey", "NHL", "puck" or "goal", grep-verified. Its postponement rule is two
 weeks where NFL/NBA/MLB's is 48 hours, and its Source Agency clause is not
 hierarchical where theirs are. The binding terms document for Kalshi's NHL game
-series is a different contract. No NHL pairs entered the sample, because the series had
-0 open events, so this does not affect the count. It would have, in season.
+series is a different contract. No NHL pairs entered the sample: `KXNHLGAME` is
+not one of the four series this pull walked, so this does not affect the count.
+It would have, in season. Whether the series had open events at the time was not
+checked.
 
 (iii) [V] Kalshi's API and its own binding contract terms name different sources.
 For `KXNFLGAME` the API returns one source, `the Governing League <nfl.com>`.
@@ -238,12 +251,17 @@ Source comparison across the sample
 
 | league | pairs | Kalshi `settlement_sources` | Polymarket US market text | src match |
 |---|---|---|---|---|
-| nfl | 27 | the Governing League \<nfl.com\> | "Outcome sourced from NFL." | yes |
+| nfl | 27 | the Governing League \<nfl.com\> | "Outcome sourced from NFL." | no, the two names differ |
 | mlb | 43 | ESPN; Fox Sports; the Governing League \<mlb.com\> | "Outcome sourced from MLB." | no, 3 against 1 |
 | epl | 4 | ESPN; Fox Sports | "Outcome sourced from Premier League." | no, governing body absent on Kalshi |
 
-Even the 27 NFL "matches" are shallow. They match the API field, and the API
-field is contradicted by the contract terms per (iii).
+The NFL row read "yes" until 2026-09-03. Kalshi's API names *the Governing
+League* and Polymarket US names *NFL*, and the scorer counted the 27 as matches
+because it searched the whole `settlement_sources` entry, URL included, and
+`https://www.nfl.com/` contains the token. On the names alone the two venues
+name different things, and the source dimension is 0 of 74. The correction at
+the foot of this file has the detail. The API field is separately contradicted
+by the contract terms per (iii).
 
 [V] Polymarket US's own hierarchy (Sports FAQs, `docs.polymarket.us/faqs/sports-faqs.md`)
 is primary the governing body, secondary official scorecards, referee and umpire
@@ -425,6 +443,15 @@ comment at the break. Logged because it is the recurring shape in `METHOD.md`, a
 plausible-looking count that makes the scope look smaller than it is, and because
 it fired inside the pull that was written to guard against it.
 
+Appended 2026-09-03. It fired a third time, in the same script. `walk()` carried
+a `cap=400000` in its loop condition, so a full-collection walk would have
+stopped at offset 399,500 holding 400,000 rows of a collection the probe above
+sizes between 542,577 and 542,968, and the reconciliation block would have
+reported that as a complete run. The cap no longer stops the walk. It raises on
+a non-empty page, and its default is above the probed size. The Gate A count is
+unaffected, which came from the 63-page `closed=false` walk and never reached
+the cap.
+
 ---
 
 ## 6. Count, and the §6 test
@@ -435,8 +462,9 @@ PLAN.md §6 kills C5 below 30. 0 < 30.
 
 The sample was not adjusted to reach the threshold and is not adjusted now. It
 was drawn before the criteria were applied, at 74 pairs, 85% above the 40-pair
-minimum, and every one of the 74 fails on the same clause, in the same direction,
-with no borderline cases. 48 hours against two weeks, verbatim, 74/74.
+minimum recorded in §2a, and every one of the 74 fails on the same clause, in
+the same direction, with no borderline cases. 48 hours against two weeks,
+verbatim, 74/74.
 
 Reporting and stopping here, as §6 requires.
 
@@ -464,9 +492,9 @@ tradeable pair exists anywhere.
 
 ---
 
-## Correction, appended 2026-08-28: PLAN.md now exists in the repository
+## Correction, appended 2026-08-29: PLAN.md now exists in the repository
 
-§0 above was true when written. `PLAN.md` was committed on 2026-08-28, after this
+§0 above was true when written. `PLAN.md` was committed on 2026-08-29, after this
 gate ran, from the plan text Gate A was run against. Its §6 reads "Gate A finds
 fewer than 30 settlement-identical market pairs → C5 dies", which is the
 threshold this gate applied. The three open items in §0 (the universe and pair
@@ -479,3 +507,53 @@ pairs → C5 dies, or shrinks to the identical subset and is re-scoped." The
 paragraph above quotes only the first branch. The kill is unaffected, because the
 identical subset measured 0 pairs and the re-scope branch has nothing to re-scope
 onto. Recorded here, and the paragraph above stands as written.
+
+---
+
+## Correction, appended 2026-09-03: two of the three scored dimensions were wrong
+
+An audit of the scoring code found two errors in `src/compare_pairs.py`. Both are
+fixed in the committed script. The headline is unchanged: 0 of 74 pairs are
+settlement-identical, and every pair still fails on the postponement window.
+
+Settlement source, 27 / 74 to 0 / 74. The test was
+`psrc.lower() in ksrc[0].lower()`, and `ksrc[0]` is the Kalshi source name
+followed by its URL. On the 27 NFL pairs the Kalshi entry is
+`the Governing League <https://www.nfl.com/>` and the Polymarket US source is
+`NFL`. The token `nfl` appears in the URL and nowhere in the name, so all 27
+matches came from the hostname. The test now reads the name half only, and no
+pair in the sample matches on source.
+
+Edge cases, 0 / 74 to 74 / 74. The line read
+`edge_ok = (kcancel==pcancel) and time_ok`. The `and time_ok` conjunction forced
+the edge-case column to False on every pair whose window differed, which is all
+74, so the column reported the time column and measured nothing of its own. On
+the edge-case term alone both venues fall back to a last-fair-price construct on
+all 74, which is what §2f already said in prose. `identical` ANDs the three
+columns separately and is unaffected. Whether the two fallback constructs compute
+the same number is still [U], per §2f.
+
+Four further changes to the same script do not move a published number. The
+Kalshi postponement window is now read from `rules_primary` and
+`rules_secondary` together, where it was read from `rules_secondary` alone while
+the cancellation test already read both. `window_hours` now reads only sentences
+that mention a postponement, reschedule, delay or suspension, where it used to
+return the first time phrase anywhere in the blob and ranked days ahead of hours
+regardless of position. A series outside the four-entry league map used to raise
+`KeyError`, and is now recorded as a drop. The reconciliation block now prints the
+Kalshi join keys with no Polymarket US counterpart (37 on this run, previously
+unreported), the count of Polymarket US markets of the right type against the
+count whose slug parsed, and any pair where a window could not be read.
+
+The two window changes were exercised against the rules text quoted verbatim in
+§2c, and reproduce the 48 / 336 split on all three leagues. They could not be
+re-checked against the raw pull, which is not committed, so a window figure
+moving under the wider read is [U].
+
+`notes/compare_pairs.log` and `data/raw/gateA/pair_comparison.json` are the
+outputs of the 2026-08-29 run and are left as they were printed. They carry the
+27 / 74 and 0 / 74 figures. Neither can be regenerated here, because the three
+files `compare_pairs.py` reads are not committed. The corrected figures above
+were derived from the committed `pair_comparison.json`, which records each pair's
+Kalshi source list and Polymarket US source string, and from the rules text
+quoted verbatim in §2c and §2f.

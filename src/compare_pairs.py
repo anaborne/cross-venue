@@ -11,30 +11,39 @@ MON=dict(zip('JAN FEB MAR APR MAY JUN JUL AUG SEP OCT NOV DEC'.split(),range(1,1
 kev=collections.defaultdict(list)
 for s,rows in K.items():
     for m in rows: kev[(s,m['event_ticker'])].append(m)
-kk={};unparsed=[]
+kk={};unparsed=[];unknown_series=[]
 for (s,ev),ms in kev.items():
+    lg=LG.get(s)
+    if lg is None: unknown_series.append(ev); continue
     mm=re.match(r'^KX\w+GAME-(\d{2})([A-Z]{3})(\d{2})(\d{4})?([A-Z]+)$',ev)
     if not mm: unparsed.append(ev); continue
-    yy,mo,dd,_,t=mm.groups(); kk[(LG[s],f"20{yy}-{MON[mo]:02d}-{dd}",t)]=(s,ev,ms)
+    yy,mo,dd,_,t=mm.groups(); kk[(lg,f"20{yy}-{MON[mo]:02d}-{dd}",t)]=(s,ev,ms)
 pg=collections.defaultdict(list)
+p_typed=0;p_unparsed=[]
 for m in P:
     if m.get('marketType') not in ('moneyline','drawable_outcome'): continue
+    p_typed+=1
     mm=re.match(r'^(aec|atc)-([a-z0-9]+)-([a-z0-9]+)-([a-z0-9]+)-(\d{4}-\d{2}-\d{2})(?:-([a-z0-9]+))?$',m.get('slug',''))
     if mm: pg[(mm.group(2),mm.group(5),(mm.group(3)+mm.group(4)).upper())].append(m)
+    else: p_unparsed.append(m.get('slug'))
 
 def window_hours(txt):
-    """Extract the postponement/reschedule window, in hours, from rules text."""
-    t=txt.lower()
-    for pat,mult in [(r'within (\w+|\d+) days?',24),(r'within (\w+|\d+) weeks?',168),(r'(\d+) hours',1)]:
-        m=re.search(pat,t)
-        if m:
-            v=m.group(1)
-            words={'one':1,'two':2,'three':3,'four':4,'a':1}
-            n=words.get(v, None)
-            if n is None:
-                try: n=int(v)
-                except: continue
-            return n*mult
+    """Extract the postponement/reschedule window, in hours, from the sentence
+    of the rules text that states it. Sentences that do not mention a
+    postponement, reschedule, delay or suspension are not read, so a window
+    quoted elsewhere in the blob cannot be picked up in its place."""
+    sents=[x for x in txt.lower().split('.') if re.search(r'postpon|reschedul|delay|suspend',x)]
+    for t in sents:
+        for pat,mult in [(r'within (\w+|\d+) days?',24),(r'within (\w+|\d+) weeks?',168),(r'(\d+) hours',1)]:
+            m=re.search(pat,t)
+            if m:
+                v=m.group(1)
+                words={'one':1,'two':2,'three':3,'four':4,'a':1}
+                n=words.get(v, None)
+                if n is None:
+                    try: n=int(v)
+                    except: continue
+                return n*mult
     return None
 
 def k_sources(series):
@@ -45,7 +54,8 @@ def p_source(desc):
     return m.group(1).strip() if m else None
 
 pairs=sorted(set(kk)&set(pg))
-rows=[]
+k_only=sorted(set(kk)-set(pg))
+rows=[];no_window=[]
 for key in pairs:
     lg,date,teams=key
     s,ev,ms=kk[key]
@@ -53,14 +63,19 @@ for key in pairs:
     ktxt=((km.get('rules_primary') or '')+' '+(km.get('rules_secondary') or ''))
     pm=pg[key][0]; ptxt=pm.get('description') or ''
     ksrc=k_sources(s); psrc=p_source(ptxt)
-    kw=window_hours(km.get('rules_secondary') or ''); pw=window_hours(ptxt)
+    kw=window_hours(ktxt); pw=window_hours(ptxt)
+    if kw is None or pw is None: no_window.append((ev,pm['slug'],kw,pw))
     # SOURCE identical: Polymarket US names exactly one authority, and Kalshi's
-    # series list must be that same single authority and nothing else.
-    src_ok = bool(psrc) and len(ksrc)==1 and psrc.lower().replace('the ','') in ksrc[0].lower()
+    # series list must be that same single authority and nothing else. The test
+    # reads the NAME half of the Kalshi entry only. Matching against the whole
+    # entry scores a hit when the Polymarket US name appears in the Kalshi URL
+    # and nowhere else, which is a different claim.
+    kname = ksrc[0].split(' <')[0].lower() if len(ksrc)==1 else ''
+    src_ok = bool(psrc) and len(ksrc)==1 and psrc.lower().replace('the ','') in kname
     time_ok = (kw is not None and pw is not None and kw==pw)
     kcancel = 'fair price' in ktxt.lower() or 'fair market price' in ktxt.lower()
     pcancel = 'last fair market price' in ptxt.lower()
-    edge_ok = (kcancel==pcancel) and time_ok
+    edge_ok = (kcancel==pcancel)
     rows.append(dict(league=lg,date=date,teams=teams,kalshi=ev,pmus=pm['slug'],
         k_sources='; '.join(ksrc) or '(none)',p_source=psrc or '(none)',
         k_window_h=kw,p_window_h=pw,src_ok=src_ok,time_ok=time_ok,edge_ok=edge_ok,
@@ -70,9 +85,12 @@ print("--- RECONCILIATION: pair construction ---")
 print(f"Kalshi open game events         : {len(kev)}")
 print(f"  parsed into join keys         : {len(kk)}")
 print(f"  DROPPED, ticker unparsed      : {len(unparsed)}  reason: doubleheader G1/G2 suffix -> {unparsed}")
-print(f"PMUS moneyline/drawable markets : {sum(len(v) for v in pg.values())} in {len(pg)} game keys")
+print(f"  DROPPED, series not in LG map : {len(unknown_series)}  reason: sports series outside the four walked here -> {unknown_series}")
+print(f"PMUS markets of type moneyline/drawable: {p_typed}; slug parsed: {sum(len(v) for v in pg.values())} in {len(pg)} game keys; DROPPED, slug unparsed: {len(p_unparsed)}")
 print(f"Pairs matched (league,date,teams): {len(pairs)}")
+print(f"Kalshi keys with no PMUS counterpart: {len(k_only)} -> {k_only}")
 print(f"Pairs evaluated                 : {len(rows)}   dropped in evaluation: {len(pairs)-len(rows)}")
+print(f"  window unparsed on either side: {len(no_window)} -> {no_window}")
 print()
 print("--- WINDOW MISMATCH TABLE ---")
 c=collections.Counter((r['league'],r['k_window_h'],r['p_window_h']) for r in rows)

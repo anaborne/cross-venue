@@ -68,8 +68,8 @@ and in an unpublished sports study.
   both tiers contains it, so a wrong guess costs one wasted request.
 - A 404 from the candlestick paths is not a stable answer. A 65,226-market pull
   ended with 113 markets recorded as HTTP 404 on both the historical and the live
-  candlestick path, and a second pass minutes later fetched all 115 outstanding
-  markets successfully. A retry is the only thing that distinguishes a transient
+  candlestick path, and a second pass minutes later fetched all 113 of them
+  successfully. A retry is the only thing that distinguishes a transient
   404 from a real absence on this API.
 - `/historical/markets/{t}/candlesticks` requires `start_ts`. With
   `period_interval` alone it returns 400 `"start_ts is required"`, which a client

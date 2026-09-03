@@ -14,22 +14,30 @@ Gate A (venue independence, settlement identity, read path) ran 2026-08-27/28,
 read-only, $0, no orders, no snapshots, no gap computed. The write-up with
 per-claim confidence marks is in [`notes/gateA.md`](notes/gateA.md).
 
-0 of 74 pairs are settlement-identical. Settlement source matches on 27/74,
-settlement time on 0/74, edge cases on 0/74. Every pair fails on the same clause
-in the same direction. Kalshi resolves a postponed game to a fair price if it is
+0 of 74 pairs are settlement-identical. Settlement source matches on 0/74,
+settlement time on 0/74, and cancellation handling matches on 74/74. No pair
+matches on all three. Every pair fails on the same clause in the same
+direction. Kalshi resolves a postponed game to a fair price if it is
 not played within 48 hours / two days (43 MLB, 27 NFL, 4 EPL), and Polymarket US
 waits two weeks on 74 of 74. The pre-committed kill threshold was 30
 settlement-identical pairs. 0 < 30. C5 dies at Gate A.
 
-The sample was drawn (74 pairs, against a 40-pair minimum) before the criteria
-were applied and was not adjusted. Four MLB doubleheader events were dropped as
+The sample was drawn (74 pairs, against a 40-pair minimum I had set for myself)
+before the criteria were applied and was not adjusted. That minimum is not
+written into `PLAN.md` §6 and cannot be checked against the pre-registration
+file; it is asserted here only. Four MLB doubleheader events were dropped as
 unparsed and are an open item.
+
+The source and edge-case columns above were corrected on 2026-09-03, after two
+errors in the scoring code. The correction at the foot of
+[`notes/gateA.md`](notes/gateA.md) states what changed. The 0 of 74 headline is
+unaffected.
 
 ## PLAN.md was committed after Gate A ran
 
 `PLAN.md` was not in this repository while Gate A ran. I ran the gate against the
 three questions and the §6 kill threshold (30) as I had written them down before
-the pull, and the plan file itself was committed on 2026-08-28, after the gate
+the pull, and the plan file itself was committed on 2026-08-29, after the gate
 reported, from that same plan text. Three things could not be checked against the
 file at the time: its definition of the universe and of a tradeable pair, the
 exact wording of §6 beyond the threshold number, and the maker-rebate figure it
@@ -47,11 +55,11 @@ thing about itself.
 |---|---|
 | `METHOD.md` | how I work here, and the Kalshi and Polymarket US API behaviour I checked, with the date on each item |
 | `notes/gateA.md` | the Gate A write-up |
-| `notes/compare_pairs.log` | stdout of the `src/compare_pairs.py` run that produced the 0/74 |
+| `notes/compare_pairs.log` | stdout of the `src/compare_pairs.py` run that produced the 0/74, as that run printed it, before the two scorer corrections of 2026-09-03 |
 | `src/pull_pmus.py` | raw-first paginated pull of `gateway.polymarket.us/v1/{resource}`; terminates only on an empty page |
 | `src/pull_tail.py` | resumes the same walk from a given offset |
 | `src/compare_pairs.py` | joins Kalshi open game events to Polymarket US moneyline markets on `(league, date, teams)` and scores source / time / edge-case identity |
-| `data/raw/gateA/pair_comparison.json` | the 74 scored pairs, written by `compare_pairs.py`; the one file under `data/` that is committed |
+| `data/raw/gateA/pair_comparison.json` | the 74 scored pairs, written by `compare_pairs.py`; the one file under `data/` that is committed. Its `src_ok` and `edge_ok` columns are the pre-correction ones |
 
 `data/` is otherwise gitignored. The raw pull behind Gate A is ~570 MB on the
 working machine under `data/raw/gateA/`. It holds Kalshi `open_markets.json`,
@@ -69,12 +77,20 @@ With the raw data in place (Python 3.10+, standard library only):
 python3 src/compare_pairs.py
 ```
 
-prints the reconciliation (115 Kalshi events, 111 parsed, 4 dropped; 2,448
-Polymarket US moneyline/drawable markets in 1,462 game keys; 74 pairs), the
-window and source tables, and `SETTLEMENT-IDENTICAL PAIRS: 0 of 74`, and
-rewrites `data/raw/gateA/pair_comparison.json`. Re-run 2026-08-28 against the
-same raw data: the counts above, and a JSON byte-identical to the committed
-copy. Log at `notes/compare_pairs.log`.
+A fresh clone cannot run this: the three inputs it reads are gitignored, so the
+command exits with FileNotFoundError. The committed evidence for the 74/0 is
+`data/raw/gateA/pair_comparison.json` and `notes/compare_pairs.log`, both
+outputs of the run described below.
+
+It prints the reconciliation (115 Kalshi events, 111 parsed, 4 dropped; 2,448
+Polymarket US moneyline/drawable markets with a parseable slug, in 1,462 game
+keys; 74 pairs), the window and source tables, and `SETTLEMENT-IDENTICAL PAIRS:
+0 of 74`, and rewrites `data/raw/gateA/pair_comparison.json`. Re-run 2026-08-29
+against the same raw data: the counts above, and a JSON byte-identical to the
+committed copy. Log at `notes/compare_pairs.log`. Both of those artifacts are
+from that run and predate the 2026-09-03 scorer corrections, which change the
+`src_ok` and `edge_ok` columns and the reconciliation block. They cannot be
+regenerated here, because the inputs are not committed.
 
 Rebuilding the raw data is a live pull and will not reproduce the same sample,
 because both venues' open-market sets move daily:
@@ -96,10 +112,10 @@ inline while working, and there is no committed script for them.
 Not investment advice. No capital was deployed, no orders were placed, and no
 position was taken at any point in this study.
 
-Repository status, appended 2026-08-28. This repository had no remote when the
+Repository status, appended 2026-08-29. This repository had no remote when the
 earlier commits were written, and the sentence introducing it above began
 "Private working repository". It was pushed to `anaborne/cross-venue` and made
-public on 2026-08-28. The same publication pass updated those two statements of
+public on 2026-08-29. The same publication pass updated those two statements of
 repository status in place, rewrote this file's prose for a reader outside the
 project, and replaced my internal verification notes with `METHOD.md`. Every
 finding, number and correction is as it was.

@@ -23,11 +23,11 @@ def get(path):
                 raise
             time.sleep(2 ** attempt)
 
-def walk(resource, key, page=500, cap=400000):
+def walk(resource, key, page=500, cap=1000000):
     os.makedirs(f"{OUT}/{resource}", exist_ok=True)
     offset, pages, rows = 0, 0, []
     seen_ids = set()
-    while offset < cap:
+    while True:
         raw = get(f"/v1/{resource}?limit={page}&offset={offset}")
         fn = f"{OUT}/{resource}/offset_{offset:06d}.json"
         with open(fn, "wb") as f:
@@ -44,6 +44,11 @@ def walk(resource, key, page=500, cap=400000):
         # a far larger universe.
         if not batch:
             break
+        # Hitting the cap on a non-empty page means the walk is short. It raises
+        # here, so that a truncated collection cannot reach the reconciliation
+        # block below and be reported there as a complete run.
+        if offset >= cap:
+            raise RuntimeError(f"cap {cap} reached at offset {offset} on a non-empty page; walk is truncated")
         offset += page
         time.sleep(RATE)
     return rows, pages, seen_ids
