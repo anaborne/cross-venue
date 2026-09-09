@@ -9,3 +9,8 @@ data/raw/gateA/*
 __pycache__/
 *.pyc
 .DS_Store
+
+# added 2026-09-08 during disk cleanup
+node_modules/
+.pytest_cache/
+.ruff_cache/
